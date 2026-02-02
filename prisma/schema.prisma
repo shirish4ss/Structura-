@@ -26,6 +26,7 @@ model User {
   email            String           @unique
   role             UserRole         @default(USER)
   subscriptionTier SubscriptionTier @default(FREE)
+  isBanned         Boolean          @default(false)
   createdAt        DateTime         @default(now())
   updatedAt        DateTime         @updatedAt
   sites            Site[]
