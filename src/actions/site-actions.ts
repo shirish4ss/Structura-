@@ -79,3 +79,64 @@ export async function updatePage(pageId: string, sections: object) {
     return { success: false, error: "Failed to update page." }
   }
 }
+
+export async function publishSite(siteId: string) {
+  try {
+    const { userId } = await auth()
+    if (!userId) return { success: false, error: "Unauthorized" }
+
+    const site = await prisma.site.findUnique({
+      where: { id: siteId, userId },
+      include: { pages: true },
+    })
+
+    if (!site) return { success: false, error: "Site not found" }
+
+    await prisma.$transaction(async (tx) => {
+      // 1. Update site status and theme
+      await tx.site.update({
+        where: { id: siteId },
+        data: {
+          isPublished: true,
+          publishedTheme: site.themeSettings as object,
+        },
+      })
+
+      // 2. Update each page's published sections
+      const pagePromises = site.pages.map((page) => {
+        return tx.page.update({
+          where: { id: page.id },
+          data: {
+            publishedSections: page.sections as object,
+          },
+        })
+      })
+
+      await Promise.all(pagePromises)
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error("Error publishing site:", error)
+    return { success: false, error: "Failed to publish site." }
+  }
+}
+
+export async function updateCustomDomain(siteId: string, domain: string) {
+  try {
+    const { userId } = await auth()
+    if (!userId) return { success: false, error: "Unauthorized" }
+
+    await prisma.site.update({
+      where: { id: siteId, userId },
+      data: {
+        customDomain: domain || null,
+      },
+    })
+
+    return { success: true }
+  } catch (error) {
+    console.error("Error updating custom domain:", error)
+    return { success: false, error: "Failed to update custom domain." }
+  }
+}

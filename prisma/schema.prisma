@@ -38,28 +38,30 @@ model User {
 }
 
 model Site {
-  id            String           @id @default(cuid())
-  userId        String
-  user          User             @relation(fields: [userId], references: [id], onDelete: Cascade)
-  subdomain     String           @unique
-  customDomain  String?          @unique
-  themeSettings Json?            // colors, fonts, etc.
-  isPublished   Boolean          @default(false)
-  createdAt     DateTime         @default(now())
-  updatedAt     DateTime         @updatedAt
-  pages         Page[]
-  submissions   FormSubmission[]
+  id               String           @id @default(cuid())
+  userId           String
+  user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  subdomain        String           @unique
+  customDomain     String?          @unique
+  themeSettings    Json?            // colors, fonts, etc.
+  publishedTheme   Json?
+  isPublished      Boolean          @default(false)
+  createdAt        DateTime         @default(now())
+  updatedAt        DateTime         @updatedAt
+  pages            Page[]
+  submissions      FormSubmission[]
 }
 
 model Page {
-  id          String   @id @default(cuid())
-  siteId      String
-  site        Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
-  slug        String   // e.g., "about"
-  seoMetadata Json?    // { title, description, ogImage }
-  sections    Json     // Array of sections: [{ type: "hero", content: {} }, ...]
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String   @id @default(cuid())
+  siteId            String
+  site              Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  slug              String   // e.g., "about"
+  seoMetadata       Json?    // { title, description, ogImage }
+  sections          Json     // Array of sections: [{ type: "hero", content: {} }, ...]
+  publishedSections Json?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 
   @@unique([siteId, slug])
 }

@@ -1,6 +1,7 @@
 "use client"
 
 import { useState, useEffect, use } from "react"
+import { motion } from "framer-motion"
 import { useSiteStore } from "@/store/useSiteStore"
 import { DynamicRenderer } from "@/components/engine/DynamicRenderer"
 import { Button } from "@/components/ui/button"
@@ -15,12 +16,14 @@ import {
   Send,
   Loader2,
   Check,
-  Cloud
+  Cloud,
+  ExternalLink
 } from "lucide-react"
-import { getSite } from "@/actions/site-actions"
+import { getSite, publishSite } from "@/actions/site-actions"
 import { cn } from "@/lib/utils"
 import { SiteTheme, Section } from "@/types/site"
 import { useAutoSave } from "@/hooks/useAutoSave"
+import Link from "next/link"
 
 export default function EditorPage({ searchParams }: { searchParams: Promise<{ siteId: string }> }) {
   const { siteId } = use(searchParams)
@@ -28,9 +31,27 @@ export default function EditorPage({ searchParams }: { searchParams: Promise<{ s
   const [device, setDevice] = useState<"desktop" | "tablet" | "mobile">("desktop")
   const [chatInput, setChatInput] = useState("")
   const [isLoading, setIsLoading] = useState(true)
+  const [isPublishing, setIsPublishing] = useState(false)
+  const [showPublishSuccess, setShowPublishSuccess] = useState(false)
 
   // Activate Auto-Save
   useAutoSave()
+
+  const handlePublish = async () => {
+    if (!siteId) return
+    setIsPublishing(true)
+    try {
+      const res = await publishSite(siteId)
+      if (res.success) {
+        setShowPublishSuccess(true)
+        setTimeout(() => setShowPublishSuccess(false), 5000)
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setIsPublishing(false)
+    }
+  }
 
   useEffect(() => {
     async function loadSite() {
@@ -69,10 +90,14 @@ export default function EditorPage({ searchParams }: { searchParams: Promise<{ s
     <div className="flex h-screen bg-zinc-950 text-white overflow-hidden">
       {/* Left Sidebar - Navigation */}
       <aside className="w-16 border-r border-white/10 flex flex-col items-center py-6 gap-8 bg-zinc-950">
-        <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center font-bold text-xl shadow-lg shadow-primary/20">L</div>
+        <Link href="/">
+           <div className="w-10 h-10 rounded-xl bg-primary flex items-center justify-center font-bold text-xl shadow-lg shadow-primary/20">L</div>
+        </Link>
         <div className="flex flex-col gap-6 text-zinc-500">
           <Layers className="cursor-pointer hover:text-white transition-colors" />
-          <Settings className="cursor-pointer hover:text-white transition-colors" />
+          <Link href={`/dashboard/settings?siteId=${siteId}`}>
+             <Settings className="cursor-pointer hover:text-white transition-colors" />
+          </Link>
         </div>
       </aside>
 
@@ -107,12 +132,43 @@ export default function EditorPage({ searchParams }: { searchParams: Promise<{ s
 
           <div className="flex items-center gap-4">
             <Button variant="outline" className="border-white/10 hover:bg-white/5 rounded-full px-6">Preview</Button>
-            <Button className="rounded-full px-8 shadow-lg shadow-primary/20">Publish</Button>
+            <Button
+              className="rounded-full px-8 shadow-lg shadow-primary/20 relative overflow-hidden group"
+              onClick={handlePublish}
+              disabled={isPublishing}
+            >
+              {isPublishing ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                "Publish"
+              )}
+              <div className="absolute inset-0 bg-white/20 translate-y-full group-hover:translate-y-0 transition-transform duration-300" />
+            </Button>
           </div>
         </header>
 
         {/* Preview Area */}
-        <div className="flex-1 overflow-auto p-12 flex justify-center items-start scrollbar-hide">
+        <div className="flex-1 overflow-auto p-12 flex flex-col items-center justify-start scrollbar-hide space-y-6">
+          {showPublishSuccess && (
+             <motion.div
+               initial={{ opacity: 0, y: -20 }}
+               animate={{ opacity: 1, y: 0 }}
+               className="bg-emerald-500/10 border border-emerald-500/20 p-4 rounded-2xl flex items-center justify-between w-full max-w-[1200px]"
+             >
+                <div className="flex items-center gap-3">
+                   <div className="p-2 bg-emerald-500 rounded-full">
+                      <Check className="w-4 h-4 text-black" />
+                   </div>
+                   <div>
+                      <p className="text-sm font-bold text-emerald-500">Site Published Successfully!</p>
+                      <p className="text-xs text-zinc-400">Your changes are now live for the world to see.</p>
+                   </div>
+                </div>
+                <Button size="sm" variant="outline" className="border-emerald-500/20 hover:bg-emerald-500/10 text-emerald-500 rounded-xl" onClick={() => window.open(`https://${config?.subdomain}.lumina.com`, '_blank')}>
+                   Visit Site <ExternalLink className="w-3 h-3 ml-2" />
+                </Button>
+             </motion.div>
+          )}
           <div
             className={cn(
               "bg-background transition-all duration-700 ease-in-out shadow-[0_0_100px_rgba(0,0,0,0.5)] rounded-2xl overflow-hidden border border-white/5",
