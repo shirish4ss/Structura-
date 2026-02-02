@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect, use } from "react"
 import { useSiteStore } from "@/store/useSiteStore"
 import { DynamicRenderer } from "@/components/engine/DynamicRenderer"
 import { Button } from "@/components/ui/button"
@@ -12,13 +12,53 @@ import {
   Settings,
   Layers,
   Sparkles,
-  Send
+  Send,
+  Loader2
 } from "lucide-react"
+import { getSite } from "@/actions/site-actions"
+import { cn } from "@/lib/utils"
+import { SiteTheme, Section } from "@/types/site"
 
-export default function EditorPage() {
-  const { config } = useSiteStore()
+export default function EditorPage({ searchParams }: { searchParams: Promise<{ siteId: string }> }) {
+  const { siteId } = use(searchParams)
+  const { config, setSiteConfig } = useSiteStore()
   const [device, setDevice] = useState<"desktop" | "tablet" | "mobile">("desktop")
   const [chatInput, setChatInput] = useState("")
+  const [isLoading, setIsLoading] = useState(true)
+
+  useEffect(() => {
+    async function loadSite() {
+      if (!siteId) return
+      setIsLoading(true)
+      const site = await getSite(siteId)
+      if (site) {
+        // Map Prisma site to SiteConfig type
+        setSiteConfig({
+          id: site.id,
+          name: site.subdomain,
+          industry: "",
+          subdomain: site.subdomain,
+          theme: site.themeSettings as unknown as SiteTheme,
+          pages: site.pages.map(p => ({
+            id: p.id,
+            slug: p.slug,
+            title: p.slug,
+            sections: p.sections as unknown as Section[]
+          }))
+        })
+      }
+      setIsLoading(false)
+    }
+    loadSite()
+  }, [siteId, setSiteConfig])
+
+  if (isLoading) {
+    return (
+      <div className="h-screen w-full flex items-center justify-center bg-zinc-950">
+        <Loader2 className="w-8 h-8 text-primary animate-spin" />
+      </div>
+    )
+  }
 
   return (
     <div className="flex h-screen bg-zinc-950 text-white overflow-hidden">
@@ -64,8 +104,8 @@ export default function EditorPage() {
             {config ? (
               <DynamicRenderer sections={config.pages[0].sections} />
             ) : (
-              <div className="p-20 text-center">
-                <p className="text-muted-foreground">No site configuration loaded.</p>
+              <div className="p-20 text-center text-zinc-500">
+                <p>No site configuration loaded.</p>
               </div>
             )}
           </div>
@@ -81,7 +121,7 @@ export default function EditorPage() {
         </div>
 
         <div className="flex-1 overflow-auto p-4 space-y-4">
-          <div className="bg-white/5 rounded-2xl p-4 text-sm leading-relaxed">
+          <div className="bg-white/5 rounded-2xl p-4 text-sm leading-relaxed text-zinc-300">
             Hello! I&apos;m your AI design assistant. You can ask me to change colors, add sections, or rewrite content.
           </div>
         </div>
@@ -92,7 +132,7 @@ export default function EditorPage() {
               placeholder="Ask AI to edit..."
               value={chatInput}
               onChange={(e) => setChatInput(e.target.value)}
-              className="pr-10 bg-zinc-900 border-white/10 h-12 rounded-xl"
+              className="pr-10 bg-zinc-900 border-white/10 h-12 rounded-xl focus:ring-primary"
             />
             <Button
               size="icon"
@@ -106,8 +146,4 @@ export default function EditorPage() {
       </aside>
     </div>
   )
-}
-
-function cn(...inputs: (string | boolean | undefined)[]) {
-  return inputs.filter(Boolean).join(" ")
 }

@@ -10,6 +10,7 @@ import {
   Lock,
   Plus
 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export function IntegrationMarket() {
   const integrations = [
@@ -56,8 +57,4 @@ export function IntegrationMarket() {
       </div>
     </div>
   )
-}
-
-function cn(...inputs: (string | boolean | undefined)[]) {
-  return inputs.filter(Boolean).join(" ")
 }

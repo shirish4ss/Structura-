@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Sparkles, CheckCircle2, AlertCircle } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export function SEOManager() {
   const [analyzing, setAnalyzing] = useState(false)
@@ -50,8 +51,4 @@ export function SEOManager() {
       </div>
     </Card>
   )
-}
-
-function cn(...inputs: (string | boolean | undefined)[]) {
-  return inputs.filter(Boolean).join(" ")
 }

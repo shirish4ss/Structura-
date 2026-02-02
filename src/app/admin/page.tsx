@@ -11,6 +11,7 @@ import {
   ShieldAlert,
   Search
 } from "lucide-react"
+import { cn } from "@/lib/utils"
 
 export default function AdminPage() {
   const stats = [
@@ -81,8 +82,4 @@ export default function AdminPage() {
       </div>
     </div>
   )
-}
-
-function cn(...inputs: (string | boolean | undefined)[]) {
-  return inputs.filter(Boolean).join(" ")
 }
