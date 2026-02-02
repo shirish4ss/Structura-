@@ -22,14 +22,19 @@ enum SubscriptionTier {
 }
 
 model User {
-  id               String           @id @default(cuid())
-  email            String           @unique
-  role             UserRole         @default(USER)
-  subscriptionTier SubscriptionTier @default(FREE)
-  isBanned         Boolean          @default(false)
-  createdAt        DateTime         @default(now())
-  updatedAt        DateTime         @updatedAt
-  sites            Site[]
+  id                  String           @id @default(cuid())
+  email               String           @unique
+  role                UserRole         @default(USER)
+  subscriptionTier    SubscriptionTier @default(FREE)
+  isBanned            Boolean          @default(false)
+  stripeCustomerId    String?          @unique
+  razorpayCustomerId  String?          @unique
+  subscriptionId      String?          @unique
+  currentPeriodEnd    DateTime?
+  billingCountry      String?          // e.g., "IN", "US"
+  createdAt           DateTime         @default(now())
+  updatedAt           DateTime         @updatedAt
+  sites               Site[]
 }
 
 model Site {

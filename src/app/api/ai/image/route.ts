@@ -1,5 +1,7 @@
 import { OpenAI } from "openai"
 import { NextResponse } from "next/server"
+import { auth } from "@clerk/nextjs/server"
+import { checkSubscription } from "@/lib/subscription"
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || "dummy_key",
@@ -7,6 +9,14 @@ const openai = new OpenAI({
 
 export async function POST(req: Request) {
   try {
+    const { userId } = await auth()
+    if (!userId) return new NextResponse("Unauthorized", { status: 401 })
+
+    const isPro = await checkSubscription(userId)
+    if (!isPro) {
+      return NextResponse.json({ error: "Pro subscription required for AI Image generation." }, { status: 403 })
+    }
+
     const { prompt } = await req.json()
 
     if (!prompt) {
