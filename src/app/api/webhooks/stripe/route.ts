@@ -31,7 +31,7 @@ export async function POST(req: Request) {
       return new NextResponse("User id is required", { status: 400 })
     }
 
-    await prisma.user.update({
+    const user = await prisma.user.update({
       where: { id: session.metadata.userId },
       data: {
         subscriptionTier: "PRO",
@@ -40,6 +40,24 @@ export async function POST(req: Request) {
         currentPeriodEnd: new Date((subscription as any).current_period_end * 1000),
       },
     })
+
+    // Reward Referrer (Growth Engine)
+    if (user.referredBy) {
+      const referrer = await prisma.user.findUnique({
+        where: { id: user.referredBy }
+      })
+
+      if (referrer) {
+        const newExpiry = new Date((referrer.currentPeriodEnd || new Date()).getTime() + 30 * 24 * 60 * 60 * 1000)
+        await prisma.user.update({
+          where: { id: referrer.id },
+          data: {
+            currentPeriodEnd: newExpiry,
+            referralCredits: { increment: 1 }
+          }
+        })
+      }
+    }
   }
 
   if (event.type === "invoice.payment_succeeded") {

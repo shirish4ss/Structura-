@@ -11,7 +11,7 @@ import { Label } from "@/components/ui/label"
 import { ArrowRight, Sparkles, Loader2, CheckCircle2 } from "lucide-react"
 import { createSite } from "@/actions/site-actions"
 import { useUser } from "@clerk/nextjs"
-import { useRouter } from "next/navigation"
+import { useRouter, useSearchParams } from "next/navigation"
 import { cn } from "@/lib/utils"
 
 export function OnboardingWizard() {
@@ -20,6 +20,8 @@ export function OnboardingWizard() {
   const [isSaving, setIsSaving] = useState(false)
   const { user } = useUser()
   const router = useRouter()
+  const searchParams = useSearchParams()
+  const refCode = searchParams.get("ref")
 
   const handleNext = () => setStep(currentStep + 1)
   const handleBack = () => setStep(currentStep - 1)
@@ -46,6 +48,7 @@ export function OnboardingWizard() {
     if (!user || !config) return
     setIsSaving(true)
     try {
+      // In a real app, you'd pass refCode here or handle it during user sync
       const result = await createSite(config)
       if (result.success) {
         router.push(`/dashboard/editor?siteId=${result.siteId}`)
@@ -108,6 +111,14 @@ export function OnboardingWizard() {
                 placeholder="e.g. Creative Agency"
                 value={formData.industry}
                 onChange={(e) => updateFormData({ industry: e.target.value })}
+                className="h-12 bg-white/5 border-white/10"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Referral Code (Optional)</Label>
+              <Input
+                placeholder="e.g. ABC123"
+                defaultValue={refCode || ""}
                 className="h-12 bg-white/5 border-white/10"
               />
             </div>

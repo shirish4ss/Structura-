@@ -28,7 +28,7 @@ export async function POST(req: Request) {
       return new NextResponse("User id not found in notes", { status: 400 })
     }
 
-    await prisma.user.update({
+    const user = await prisma.user.update({
       where: { id: userId },
       data: {
         subscriptionTier: "PRO",
@@ -36,6 +36,24 @@ export async function POST(req: Request) {
         currentPeriodEnd: new Date(subscription.current_end * 1000),
       },
     })
+
+    // Reward Referrer (Growth Engine)
+    if (user.referredBy) {
+      const referrer = await prisma.user.findUnique({
+        where: { id: user.referredBy }
+      })
+
+      if (referrer) {
+        const newExpiry = new Date((referrer.currentPeriodEnd || new Date()).getTime() + 30 * 24 * 60 * 60 * 1000)
+        await prisma.user.update({
+          where: { id: referrer.id },
+          data: {
+            currentPeriodEnd: newExpiry,
+            referralCredits: { increment: 1 }
+          }
+        })
+      }
+    }
   }
 
   return new NextResponse(null, { status: 200 })
