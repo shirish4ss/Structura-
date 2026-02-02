@@ -1,12 +1,38 @@
 "use client"
 
+import { useState } from "react"
 import { motion } from "framer-motion"
 import { FeaturesSection } from "@/types/site"
 import { cn } from "@/lib/utils"
 import * as LucideIcons from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Sparkles, Loader2 } from "lucide-react"
+import { useSiteStore } from "@/store/useSiteStore"
 
-export function Features({ content, style }: FeaturesSection) {
+export function Features({ id, content, style }: FeaturesSection) {
   const { title, subtitle, features } = content
+  const { updateSection } = useSiteStore()
+  const [isRewriting, setIsRewriting] = useState(false)
+
+  const handleRewrite = async (text: string, featureIndex: number) => {
+    setIsRewriting(true)
+    try {
+      const res = await fetch("/api/ai/rewrite", {
+        method: "POST",
+        body: JSON.stringify({ text, tone: "compelling" }),
+      })
+      const data = await res.json()
+
+      const newFeatures = [...features]
+      newFeatures[featureIndex] = { ...newFeatures[featureIndex], description: data.text }
+
+      updateSection("index", id, { features: newFeatures })
+    } catch (error) {
+      console.error("Rewrite failed", error)
+    } finally {
+      setIsRewriting(false)
+    }
+  }
 
   return (
     <section className={cn(
@@ -58,10 +84,20 @@ export function Features({ content, style }: FeaturesSection) {
                   <IconComponent size={24} />
                 </div>
                 <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-                <p className="text-muted-foreground leading-relaxed">
+                <p className="text-muted-foreground leading-relaxed mb-6">
                   {feature.description}
                 </p>
-                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="w-full opacity-0 group-hover:opacity-100 transition-opacity border border-white/5 rounded-xl text-xs"
+                  onClick={() => handleRewrite(feature.description, index)}
+                  disabled={isRewriting}
+                >
+                  {isRewriting ? <Loader2 className="w-3 h-3 animate-spin mr-2" /> : <Sparkles className="w-3 h-3 mr-2 text-primary" />}
+                  AI Refine Text
+                </Button>
+                <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
               </motion.div>
             )
           })}
