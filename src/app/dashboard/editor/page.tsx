@@ -29,6 +29,7 @@ export default function EditorPage({ searchParams }: { searchParams: Promise<{ s
   const { siteId } = use(searchParams)
   const { config, setSiteConfig, isDirty } = useSiteStore()
   const [device, setDevice] = useState<"desktop" | "tablet" | "mobile">("desktop")
+  const [activePageSlug, setActivePageSlug] = useState("index")
   const [chatInput, setChatInput] = useState("")
   const [isLoading, setIsLoading] = useState(true)
   const [isPublishing, setIsPublishing] = useState(false)
@@ -176,7 +177,7 @@ export default function EditorPage({ searchParams }: { searchParams: Promise<{ s
             )}
           >
             {config ? (
-              <DynamicRenderer sections={config.pages[0].sections} />
+              <DynamicRenderer sections={config.pages.find(p => p.slug === activePageSlug)?.sections || config.pages[0].sections} />
             ) : (
               <div className="p-20 text-center text-zinc-500">
                 <p>No site configuration loaded.</p>
@@ -205,11 +206,24 @@ export default function EditorPage({ searchParams }: { searchParams: Promise<{ s
           </div>
 
           <div className="space-y-4">
-            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Active Page</h3>
-            <Card className="p-4 bg-white/5 border-white/10 rounded-2xl flex items-center justify-between cursor-pointer hover:bg-white/10 transition-colors">
-              <span className="text-sm font-medium">Home Page</span>
-              <Settings className="w-4 h-4 text-zinc-500" />
-            </Card>
+            <h3 className="text-xs font-bold text-zinc-500 uppercase tracking-widest">Pages</h3>
+            <div className="space-y-2">
+              {config?.pages.map((page) => (
+                <Card
+                  key={page.slug}
+                  onClick={() => setActivePageSlug(page.slug)}
+                  className={cn(
+                    "p-4 border rounded-2xl flex items-center justify-between cursor-pointer transition-all",
+                    activePageSlug === page.slug
+                      ? "bg-primary/10 border-primary/50 text-white shadow-lg shadow-primary/5"
+                      : "bg-white/5 border-white/10 text-zinc-400 hover:bg-white/10 hover:text-white"
+                  )}
+                >
+                  <span className="text-sm font-medium capitalize">{page.title}</span>
+                  {activePageSlug === page.slug && <div className="w-1.5 h-1.5 rounded-full bg-primary" />}
+                </Card>
+              ))}
+            </div>
           </div>
         </div>
 

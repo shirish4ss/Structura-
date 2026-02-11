@@ -10,7 +10,9 @@ export type SectionType =
   | "pricing"
   | "team"
   | "footer"
-  | "cta";
+  | "cta"
+  | "announcement-bar"
+  | "custom-code";
 
 export interface SectionStyle {
   variant?: "minimal" | "bold" | "corporate" | "playful" | "luxury";
@@ -97,12 +99,29 @@ export interface PricingSection extends BaseSection {
   };
 }
 
+export interface AnnouncementBarSection extends BaseSection {
+  type: "announcement-bar";
+  content: {
+    text: string;
+    link?: string;
+  };
+}
+
+export interface CustomCodeSection extends BaseSection {
+  type: "custom-code";
+  content: {
+    code: string;
+  };
+}
+
 export type Section =
   | HeroSection
   | FeaturesSection
   | TestimonialsSection
   | ContactSection
-  | PricingSection;
+  | PricingSection
+  | AnnouncementBarSection
+  | CustomCodeSection;
 
 export interface PageConfig {
   id: string;

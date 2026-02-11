@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button"
 import { Plus, Globe, Settings, Edit3, CreditCard } from "lucide-react"
 import Link from "next/link"
 import { ReferralCard } from "@/components/dashboard/ReferralCard"
+import { AnalyticsDashboard } from "@/components/dashboard/AnalyticsDashboard"
+import { SocialGenerator } from "@/components/dashboard/SocialGenerator"
 
 export default async function DashboardPage() {
   const { userId } = await auth()
@@ -13,8 +15,10 @@ export default async function DashboardPage() {
 
   const sites = await prisma.site.findMany({
     where: { userId },
-    include: { pages: true }
+    include: { pages: true, analytics: true }
   })
+
+  const totalViews = sites.reduce((acc, site) => acc + site.analytics.length, 0)
 
   return (
     <div className="p-10 bg-zinc-950 min-h-screen text-white space-y-12">
@@ -68,9 +72,17 @@ export default async function DashboardPage() {
                 ))
               )}
            </div>
+
+           {sites.length > 0 && (
+             <SocialGenerator
+               siteName={sites[0].subdomain}
+               description="High-end AI powered business website."
+             />
+           )}
         </div>
 
         <div className="space-y-8">
+           <AnalyticsDashboard totalViews={totalViews} />
            <ReferralCard />
 
            <Card className="p-8 bg-zinc-900 border-white/10 rounded-3xl space-y-6">

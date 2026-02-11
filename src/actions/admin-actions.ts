@@ -93,3 +93,25 @@ export async function getOrphanedAssets() {
 
   return orphaned
 }
+
+export async function getRevenueByLocation() {
+  const users = await prisma.user.findMany({
+    select: { billingCountry: true, subscriptionTier: true }
+  })
+
+  const countries: Record<string, { count: number, revenue: number }> = {}
+
+  users.forEach(user => {
+    const country = user.billingCountry || "Unknown"
+    if (!countries[country]) countries[country] = { count: 0, revenue: 0 }
+    countries[country].count++
+    if (user.subscriptionTier === "PRO") {
+      countries[country].revenue += 29
+    }
+  })
+
+  return Object.entries(countries).map(([name, data]) => ({
+    name,
+    ...data
+  }))
+}

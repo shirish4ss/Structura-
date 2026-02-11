@@ -1,0 +1,49 @@
+
+> lumina@0.1.0 dev
+> next dev --turbopack
+
+ ⚠ Mismatching @next/swc version, detected: 15.5.7 while Next.js is on 15.5.11. Please ensure these match
+ ⚠ Mismatching @next/swc version, detected: 15.5.7 while Next.js is on 15.5.11. Please ensure these match
+   ▲ Next.js 15.5.11 (Turbopack)
+   - Local:        http://localhost:3000
+   - Network:      http://192.168.0.2:3000
+   - Environments: .env
+
+ ✓ Starting...
+ ○ Compiling middleware ...
+ ✓ Compiled middleware in 668ms
+ ✓ Ready in 2.3s
+ ○ Compiling / ...
+ ✓ Compiled / in 9.4s
+ GET / 200 in 10428ms
+ ○ Compiling /site/[domain] ...
+ ✓ Compiled /site/[domain] in 12.9s
+ ⨯ Error [PrismaClientInitializationError]:
+Invalid `__TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].site.findFirst()` invocation in
+/app/.next/server/chunks/ssr/[root-of-the-server]__91094464._.js:395:156
+
+  392 async function PublicSitePage({ params }) {
+  393     const { domain } = await params;
+  394     // Fetch site by subdomain, custom domain, or ID
+→ 395     const site = await __TURBOPACK__imported__module__$5b$project$5d2f$src$2f$lib$2f$prisma$2e$ts__$5b$app$2d$rsc$5d$__$28$ecmascript$29$__["prisma"].site.findFirst(
+Can't reach database server at `localhost:5432`
+
+Please make sure your database server is running at `localhost:5432`.
+    at <unknown> (src/app/site/[domain]/page.tsx:13:34)
+    at async PublicSitePage (src/app/site/[domain]/page.tsx:13:16)
+  11 |
+  12 |   // Fetch site by subdomain, custom domain, or ID
+> 13 |   const site = await prisma.site.findFirst({
+     |                                  ^
+  14 |     where: {
+  15 |       OR: [
+  16 |         { subdomain: domain }, {
+  clientVersion: '6.2.1',
+  errorCode: undefined,
+  digest: '4242634943'
+}
+ GET / 500 in 15480ms
+ ✓ Compiled middleware in 3ms
+ ✓ Compiled in 122ms
+ GET / 200 in 226ms
+ ✓ Compiled middleware in 138ms

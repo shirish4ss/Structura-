@@ -15,17 +15,21 @@ import {
   Ban
 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { getAdminStats, banUser, impersonateUser, getOrphanedAssets } from "@/actions/admin-actions"
+import { getAdminStats, banUser, impersonateUser, getOrphanedAssets, getRevenueByLocation } from "@/actions/admin-actions"
+import { RevenueHeatmap } from "@/components/admin/RevenueHeatmap"
 
 export default function AdminPage() {
   const [stats, setStats] = useState<{ totalUsers: number, activeSites: number, revenue: number, isDbHealthy: boolean } | null>(null)
   const [loading, setLoading] = useState(true)
   const [orphanedImages, setOrphanedImages] = useState<string[]>([])
+  const [revenueData, setRevenueData] = useState<{ name: string, count: number, revenue: number }[]>([])
 
   useEffect(() => {
     async function loadData() {
       const data = await getAdminStats()
+      const revenue = await getRevenueByLocation()
       setStats(data)
+      setRevenueData(revenue)
       setLoading(false)
     }
     loadData()
@@ -176,6 +180,8 @@ export default function AdminPage() {
             ))}
           </div>
         </Card>
+
+        <RevenueHeatmap data={revenueData} />
       </div>
     </div>
   )

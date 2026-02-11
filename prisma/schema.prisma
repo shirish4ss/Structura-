@@ -46,6 +46,8 @@ model Site {
   user             User             @relation(fields: [userId], references: [id], onDelete: Cascade)
   subdomain        String           @unique
   customDomain     String?          @unique
+  password         String?          // For site protection
+  templateVersion  Int              @default(1)
   themeSettings    Json?            // colors, fonts, etc.
   publishedTheme   Json?
   isPublished      Boolean          @default(false)
@@ -53,6 +55,16 @@ model Site {
   updatedAt        DateTime         @updatedAt
   pages            Page[]
   submissions      FormSubmission[]
+  analytics        Analytics[]
+}
+
+model Analytics {
+  id        String   @id @default(cuid())
+  siteId    String
+  site      Site     @relation(fields: [siteId], references: [id], onDelete: Cascade)
+  event     String   // e.g., "PAGE_VIEW"
+  path      String   @default("/")
+  timestamp DateTime @default(now())
 }
 
 model Page {

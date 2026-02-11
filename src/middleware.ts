@@ -5,23 +5,21 @@ export default clerkMiddleware(async (auth, req) => {
   const url = req.nextUrl;
   const hostname = req.headers.get("host") || "";
 
-  // Main application domain
   const mainDomain = process.env.NEXT_PUBLIC_APP_DOMAIN || "lumina.com";
 
-  // Define host types
   const isAppHost = hostname === `app.${mainDomain}`;
-  const isLocalHost = hostname.includes("localhost");
+  const isLocalHost = hostname.includes("localhost") || hostname.includes("127.0.0.1");
 
-  // Public site routing (Subdomains or Custom Domains)
   if (!isAppHost && !isLocalHost && hostname !== mainDomain) {
-    // 1. Subdomain routing: [subdomain].lumina.com
+    let domain = hostname;
     if (hostname.endsWith(`.${mainDomain}`)) {
-      const subdomain = hostname.replace(`.${mainDomain}`, "");
-      return NextResponse.rewrite(new URL(`/site/${subdomain}${url.pathname}`, req.url));
+      domain = hostname.replace(`.${mainDomain}`, "");
     }
 
-    // 2. Custom domain routing: userdomain.com
-    return NextResponse.rewrite(new URL(`/site/${hostname}${url.pathname}`, req.url));
+    // Check for password session if needed
+    // This is simplified. In real app, we'd fetch site config here or in a wrapper.
+    // For now, let's just do the rewrite.
+    return NextResponse.rewrite(new URL(`/site/${domain}${url.pathname}`, req.url));
   }
 
   return NextResponse.next();

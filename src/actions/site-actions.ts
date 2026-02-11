@@ -2,7 +2,8 @@
 
 import { prisma } from "@/lib/prisma"
 import { SiteConfig } from "@/types/site"
-import { auth } from "@clerk/nextjs/server"
+import { auth, currentUser } from "@clerk/nextjs/server"
+import { sendPublicationEmail } from "@/lib/email"
 
 export async function createSite(config: SiteConfig) {
   try {
@@ -114,6 +115,12 @@ export async function publishSite(siteId: string) {
 
       await Promise.all(pagePromises)
     })
+
+    // Send Notification Email
+    const user = await currentUser()
+    if (user?.emailAddresses[0]?.emailAddress) {
+       await sendPublicationEmail(user.emailAddresses[0].emailAddress, `https://${site.subdomain}.lumina.com`)
+    }
 
     return { success: true }
   } catch (error) {
